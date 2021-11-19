@@ -15,6 +15,8 @@
  */
 package com.example.ksia.model;
 
+import java.util.Objects;
+
 /**
  * User: Bill Bejeck
  * Date: 2/20/16
@@ -77,7 +79,7 @@ public class RewardAccumulator {
         if (totalRewardPoints != that.totalRewardPoints) return false;
         if (currentRewardPoints != that.currentRewardPoints) return false;
         if (daysFromLastPurchase != that.daysFromLastPurchase) return false;
-        return customerId != null ? customerId.equals(that.customerId) : that.customerId == null;
+        return Objects.equals(customerId, that.customerId);
     }
 
     @Override

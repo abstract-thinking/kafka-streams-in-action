@@ -1,5 +1,6 @@
 package com.example.ksia.chapter2.consumer;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.kafka.common.errors.SerializationException;
@@ -10,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PurchaseKeyDeserializer implements Deserializer<PurchaseKey> {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
@@ -24,7 +25,7 @@ public class PurchaseKeyDeserializer implements Deserializer<PurchaseKey> {
                 return null;
             }
             System.out.println("Deserializing...");
-            return objectMapper.readValue(new String(data, "UTF-8"), PurchaseKey.class);
+            return objectMapper.readValue(new String(data, StandardCharsets.UTF_8), PurchaseKey.class);
         } catch (Exception e) {
             throw new SerializationException("Error when deserializing byte[] to PurchaseKey");
         }

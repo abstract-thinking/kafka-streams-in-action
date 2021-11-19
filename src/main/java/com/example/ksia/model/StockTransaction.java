@@ -17,6 +17,7 @@
 package com.example.ksia.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class StockTransaction {
 
@@ -129,11 +130,11 @@ public class StockTransaction {
         if (shares != that.shares) return false;
         if (Double.compare(that.sharePrice, sharePrice) != 0) return false;
         if (purchase != that.purchase) return false;
-        if (symbol != null ? !symbol.equals(that.symbol) : that.symbol != null) return false;
-        if (sector != null ? !sector.equals(that.sector) : that.sector != null) return false;
-        if (industry != null ? !industry.equals(that.industry) : that.industry != null) return false;
-        if (customerId != null ? !customerId.equals(that.customerId) : that.customerId != null) return false;
-        return transactionTimestamp != null ? transactionTimestamp.equals(that.transactionTimestamp) : that.transactionTimestamp == null;
+        if (!Objects.equals(symbol, that.symbol)) return false;
+        if (!Objects.equals(sector, that.sector)) return false;
+        if (!Objects.equals(industry, that.industry)) return false;
+        if (!Objects.equals(customerId, that.customerId)) return false;
+        return Objects.equals(transactionTimestamp, that.transactionTimestamp);
     }
 
     @Override

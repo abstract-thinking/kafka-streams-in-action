@@ -16,7 +16,7 @@ public class StockPerformance {
     private double currentAverageVolume = Double.MIN_VALUE;
     private final ArrayDeque<Double> shareVolumeLookback = new ArrayDeque<>(MAX_LOOK_BACK);
     private final ArrayDeque<Double> sharePriceLookback = new ArrayDeque<>(MAX_LOOK_BACK);
-    private transient DecimalFormat decimalFormat = new DecimalFormat("#.00");
+    private final transient DecimalFormat decimalFormat = new DecimalFormat("#.00");
 
     public void setLastUpdateSent(Instant lastUpdateSent) {
         this.lastUpdateSent = lastUpdateSent;

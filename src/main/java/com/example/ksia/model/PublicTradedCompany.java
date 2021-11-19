@@ -7,7 +7,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public  class PublicTradedCompany {
     private double volatility;
-    private final double lastSold;
     private final String symbol;
     private final String name;
     private final String sector;
@@ -37,7 +36,6 @@ public  class PublicTradedCompany {
 
     public PublicTradedCompany(double voltility, double lastSold, String symbol, String name, String sector, String industry) {
         this.volatility = volatility;
-        this.lastSold = lastSold;
         this.symbol = symbol.toUpperCase();
         this.name = name;
         this.sector = sector;

@@ -1,5 +1,7 @@
 package com.example.ksia.util.collection;
 
+import java.util.Objects;
+
 public class Tuple<L, R> {
 
     public final L _1;
@@ -26,10 +28,10 @@ public class Tuple<L, R> {
 
         Tuple<?, ?> tuple = (Tuple<?, ?>) o;
 
-        if (_1 != null ? !_1.equals(tuple._1) : tuple._1 != null) {
+        if (!Objects.equals(_1, tuple._1)) {
             return false;
         }
-        return _2 != null ? _2.equals(tuple._2) : tuple._2 == null;
+        return Objects.equals(_2, tuple._2);
     }
 
     @Override

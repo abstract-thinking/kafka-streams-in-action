@@ -20,12 +20,11 @@ public class FixedSizePriorityQueue<T> {
         this.maxSize = maxSize;
     }
 
-    public FixedSizePriorityQueue<T> add(T element) {
+    public void add(T element) {
         inner.add(element);
         if (inner.size() > maxSize) {
             inner.pollLast();
         }
-        return this;
     }
 
     public FixedSizePriorityQueue<T> remove(T element) {

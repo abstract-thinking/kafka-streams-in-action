@@ -33,7 +33,7 @@ public class DataGenerator {
     public static final int NUMBER_TRADED_COMPANIES = 50;
     public static final int NUM_ITERATIONS = 10;
 
-    private static Faker dateFaker = new Faker();
+    private static final Faker dateFaker = new Faker();
     private static Supplier<Date> timestampGenerator = () -> dateFaker.date().past(15, TimeUnit.MINUTES, new Date());
 
     private DataGenerator() {
@@ -101,7 +101,7 @@ public class DataGenerator {
 
             Purchase purchase = Purchase.builder().creditCardNumber(customer.creditCardNumber).customerId(customer.customerId)
                     .department(store.department).employeeId(store.employeeId).firstName(customer.firstName)
-                    .lastName(customer.lastName).itemPurchased(itemPurchased).quanity(quantity).price(price).purchaseDate(purchaseDate)
+                    .lastName(customer.lastName).itemPurchased(itemPurchased).quantity(quantity).price(price).purchaseDate(purchaseDate)
                     .zipCode(store.zipCode).storeId(store.storeId).build();
 
 
@@ -237,7 +237,7 @@ public class DataGenerator {
 
         return Purchase.builder(purchase).department("Coffee")
                 .itemPurchased(faker.options().option("Mocha", "Mild Roast", "Red-Eye", "Dark Roast"))
-                .price(Double.parseDouble(faker.commerce().price(3.00, 6.00))).quanity(1).purchaseDate(cafeDate).build();
+                .price(Double.parseDouble(faker.commerce().price(3.00, 6.00))).quantity(1).purchaseDate(cafeDate).build();
 
     }
 
@@ -288,10 +288,10 @@ public class DataGenerator {
 
 
     public static class Customer {
-        private String firstName;
-        private String lastName;
-        private String customerId;
-        private String creditCardNumber;
+        private final String firstName;
+        private final String lastName;
+        private final String customerId;
+        private final String creditCardNumber;
 
         private Customer(String firstName, String lastName, String customerId, String creditCardNumber) {
             this.firstName = firstName;
@@ -318,10 +318,10 @@ public class DataGenerator {
     }
 
     private static class Store {
-        private String employeeId;
-        private String zipCode;
-        private String storeId;
-        private String department;
+        private final String employeeId;
+        private final String zipCode;
+        private final String storeId;
+        private final String department;
 
         private Store(String employeeId, String zipCode, String storeId, String department) {
             this.employeeId = employeeId;

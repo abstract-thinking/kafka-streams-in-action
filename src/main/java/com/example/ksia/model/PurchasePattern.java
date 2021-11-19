@@ -16,6 +16,7 @@
 package com.example.ksia.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * User: Bill Bejeck
@@ -78,8 +79,8 @@ public class PurchasePattern {
         PurchasePattern that = (PurchasePattern) o;
 
         if (Double.compare(that.amount, amount) != 0) return false;
-        if (zipCode != null ? !zipCode.equals(that.zipCode) : that.zipCode != null) return false;
-        return item != null ? item.equals(that.item) : that.item == null;
+        if (!Objects.equals(zipCode, that.zipCode)) return false;
+        return Objects.equals(item, that.item);
     }
 
     @Override

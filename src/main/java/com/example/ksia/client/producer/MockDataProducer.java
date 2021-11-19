@@ -49,12 +49,12 @@ public class MockDataProducer {
     public static final String STOCK_TICKER_TABLE_TOPIC = "stock-ticker-table";
     public static final String STOCK_TICKER_STREAM_TOPIC = "stock-ticker-stream";
     public static final String FINANCIAL_NEWS = "financial-news";
-    public static final String CLICK_EVNTS_SRC = "events";
+    public static final String CLICK_EVENTS_SRC = "events";
     public static final String CO_GROUPED_RESULTS = "cogrouped-results";
     public static final String YELLING_APP_TOPIC = "src-topic";
     private static final int YELLING_APP_ITERATIONS = 5;
     private static volatile boolean keepRunning = true;
-    private static volatile boolean producingIQData = false;
+    private static final boolean producingIQData = false;
 
 
     public static void producePurchaseData() {
@@ -232,7 +232,7 @@ public class MockDataProducer {
 
                 for (ClickEvent clickEvent : clickEvents) {
                     String jsonEvent = convertToJson(clickEvent);
-                    ProducerRecord<String, String> record = new ProducerRecord<>(CLICK_EVNTS_SRC, clickEvent.getSymbol(), jsonEvent);
+                    ProducerRecord<String, String> record = new ProducerRecord<>(CLICK_EVENTS_SRC, clickEvent.getSymbol(), jsonEvent);
                     producer.send(record, callback);
                 }
 

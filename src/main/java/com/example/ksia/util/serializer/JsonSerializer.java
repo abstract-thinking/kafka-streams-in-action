@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Map;
  */
 public class JsonSerializer<T> implements Serializer<T> {
 
-    private Gson gson;
+    private final Gson gson;
 
     public JsonSerializer() {
         GsonBuilder builder = new GsonBuilder();
@@ -45,7 +46,7 @@ public class JsonSerializer<T> implements Serializer<T> {
 
     @Override
     public byte[] serialize(String topic, T t) {
-        return gson.toJson(t).getBytes(Charset.forName("UTF-8"));
+        return gson.toJson(t).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

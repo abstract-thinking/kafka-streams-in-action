@@ -134,17 +134,17 @@ public class Purchase {
 
         if (quantity != purchase.quantity) return false;
         if (Double.compare(purchase.price, price) != 0) return false;
-        if (firstName != null ? !firstName.equals(purchase.firstName) : purchase.firstName != null) return false;
-        if (lastName != null ? !lastName.equals(purchase.lastName) : purchase.lastName != null) return false;
-        if (customerId != null ? !customerId.equals(purchase.customerId) : purchase.customerId != null) return false;
-        if (creditCardNumber != null ? !creditCardNumber.equals(purchase.creditCardNumber) : purchase.creditCardNumber != null)
+        if (!Objects.equals(firstName, purchase.firstName)) return false;
+        if (!Objects.equals(lastName, purchase.lastName)) return false;
+        if (!Objects.equals(customerId, purchase.customerId)) return false;
+        if (!Objects.equals(creditCardNumber, purchase.creditCardNumber))
             return false;
-        if (itemPurchased != null ? !itemPurchased.equals(purchase.itemPurchased) : purchase.itemPurchased != null)
+        if (!Objects.equals(itemPurchased, purchase.itemPurchased))
             return false;
-        if (department != null ? !department.equals(purchase.department) : purchase.department != null) return false;
-        if (employeeId != null ? !employeeId.equals(purchase.employeeId) : purchase.employeeId != null) return false;
-        if (zipCode != null ? !zipCode.equals(purchase.zipCode) : purchase.zipCode != null) return false;
-        return storeId != null ? storeId.equals(purchase.storeId) : purchase.storeId == null;
+        if (!Objects.equals(department, purchase.department)) return false;
+        if (!Objects.equals(employeeId, purchase.employeeId)) return false;
+        if (!Objects.equals(zipCode, purchase.zipCode)) return false;
+        return Objects.equals(storeId, purchase.storeId);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class Purchase {
         result = 31 * result + (employeeId != null ? employeeId.hashCode() : 0);
         result = 31 * result + quantity;
         temp = Double.doubleToLongBits(price);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + (zipCode != null ? zipCode.hashCode() : 0);
         result = 31 * result + (storeId != null ? storeId.hashCode() : 0);
         return result;
@@ -256,7 +256,7 @@ public class Purchase {
             return this;
         }
 
-        public Builder quanity(int val) {
+        public Builder quantity(int val) {
             quantity = val;
             return this;
         }
