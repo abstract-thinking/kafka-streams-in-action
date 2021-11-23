@@ -25,7 +25,10 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.ForeachAction;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Printed;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
@@ -35,15 +38,17 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Properties;
 
+import com.example.ksia.chapter3.service.SecurityDBService;
 import com.example.ksia.client.producer.MockDataProducer;
 import com.example.ksia.model.Purchase;
 import com.example.ksia.model.PurchasePattern;
 import com.example.ksia.model.RewardAccumulator;
 import com.example.ksia.util.serde.StreamsSerdes;
 
-public class ZMartKafkaStreamsApp {
+@SuppressWarnings("unchecked")
+public class ZMartKafkaStreamsAdvancedReqsApp {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ZMartKafkaStreamsApp.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZMartKafkaStreamsAdvancedReqsApp.class);
 
     private static Properties getAdminConfig() {
         Properties properties = new Properties();
@@ -59,7 +64,9 @@ public class ZMartKafkaStreamsApp {
         NewTopic newTopic2 = new NewTopic("patterns", 1, (short)1);
         NewTopic newTopic3 = new NewTopic("rewards", 1, (short)1);
         NewTopic newTopic4 = new NewTopic("purchases", 1, (short)1);
-        adminClient.createTopics(List.of(newTopic1, newTopic2, newTopic3, newTopic4));
+        NewTopic newTopic5 = new NewTopic("coffee", 1, (short)1);
+        NewTopic newTopic6 = new NewTopic("electronics", 1, (short)1);
+        adminClient.createTopics(List.of(newTopic1, newTopic2, newTopic3, newTopic4, newTopic5, newTopic6));
         adminClient.close();
     }
 
@@ -73,27 +80,55 @@ public class ZMartKafkaStreamsApp {
         Serde<RewardAccumulator> rewardAccumulatorSerde = StreamsSerdes.RewardAccumulatorSerde();
         Serde<String> stringSerde = Serdes.String();
 
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
-        KStream<String,Purchase> purchaseKStream = streamsBuilder
-                .stream("transactions", Consumed.with(stringSerde, purchaseSerde))
+        StreamsBuilder builder = new StreamsBuilder();
+        // previous requirements
+        KStream<String, Purchase> purchaseKStream = builder.stream("transactions", Consumed.with(stringSerde, purchaseSerde))
                 .mapValues(p -> Purchase.builder(p).maskCreditCard().build());
 
-        KStream<String, PurchasePattern> patternKStream = purchaseKStream.mapValues(purchase -> PurchasePattern.builder(purchase).build());
+        KStream<String, PurchasePattern> patternKStream = purchaseKStream.mapValues(purchase -> PurchasePattern.builder(purchase)
+                .build());
         patternKStream.print(Printed.<String, PurchasePattern>toSysOut().withLabel("patterns"));
         patternKStream.to("patterns", Produced.with(stringSerde, purchasePatternSerde));
 
-        KStream<String, RewardAccumulator> rewardsKStream = purchaseKStream.mapValues(purchase -> RewardAccumulator.builder(purchase).build());
+        KStream<String, RewardAccumulator> rewardsKStream =
+                purchaseKStream.mapValues(purchase -> RewardAccumulator.builder(purchase)
+                .build());
         rewardsKStream.print(Printed.<String, RewardAccumulator>toSysOut().withLabel("rewards"));
         rewardsKStream.to("rewards", Produced.with(stringSerde, rewardAccumulatorSerde));
 
-        purchaseKStream.print(Printed.<String, Purchase>toSysOut().withLabel("purchases"));
-        purchaseKStream.to("purchases", Produced.with(stringSerde, purchaseSerde));
+        // selecting a key for storage and filtering out low dollar purchases
+
+        KeyValueMapper<String, Purchase, Long> purchaseDateAsKey = (key, purchase) -> purchase.getPurchaseDate().getTime();
+        KStream<Long, Purchase> filteredKStream = purchaseKStream.filter((key, purchase) -> purchase.getPrice() > 5.00)
+                .selectKey(purchaseDateAsKey);
+        filteredKStream.print(Printed.<Long, Purchase>toSysOut().withLabel("purchases"));
+        filteredKStream.to("purchases", Produced.with(Serdes.Long(), purchaseSerde));
+
+        // branching stream for separating out purchases in new departments to their own topics
+
+        Predicate<String, Purchase> isCoffee = (key, purchase) -> purchase.getDepartment().equalsIgnoreCase("coffee");
+        Predicate<String, Purchase> isElectronics = (key, purchase) -> purchase.getDepartment().equalsIgnoreCase("electronics");
+
+        int coffee = 0;
+        int electronics = 1;
+
+        KStream<String, Purchase>[] kstreamByDept = purchaseKStream.branch(isCoffee, isElectronics);
+        kstreamByDept[coffee].to("coffee", Produced.with(stringSerde, purchaseSerde));
+        kstreamByDept[coffee].print(Printed.<String, Purchase>toSysOut().withLabel("coffee"));
+        kstreamByDept[electronics].to("electronics", Produced.with(stringSerde, purchaseSerde));
+        kstreamByDept[electronics].print(Printed.<String, Purchase>toSysOut().withLabel("electronics"));
+
+        // security Requirements to record transactions for certain employee
+        ForeachAction<String, Purchase> purchaseForeachAction = (key, purchase) ->
+                SecurityDBService.saveRecord(purchase.getPurchaseDate(), purchase.getEmployeeId(), purchase.getItemPurchased());
+
+        purchaseKStream.filter((key, purchase) -> purchase.getEmployeeId().equals("000000")).foreach(purchaseForeachAction);
 
         // used only to produce data for this application, not typical usage
         MockDataProducer.producePurchaseData();
 
-        KafkaStreams kafkaStreams = new KafkaStreams(streamsBuilder.build(),streamsConfig);
-        LOG.info("ZMart First Kafka Streams Application Started");
+        KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), streamsConfig);
+        LOG.info("ZMart Advanced Requirements Kafka Streams Application Started");
         kafkaStreams.start();
         Thread.sleep(65000);
         LOG.info("Shutting down the Kafka Streams Application now");
@@ -103,12 +138,14 @@ public class ZMartKafkaStreamsApp {
 
     private static Properties getProperties() {
         Properties props = new Properties();
-        props.put(StreamsConfig.CLIENT_ID_CONFIG, "FirstZmart-Kafka-Streams-Client");
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "zmart-purchases");
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "FirstZmart-Kafka-Streams-App");
+        props.put(StreamsConfig.CLIENT_ID_CONFIG, "Example-Kafka-Streams-Job");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "streams-purchases");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "testing-streams-api");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 1);
         props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
         return props;
     }
+
 }
